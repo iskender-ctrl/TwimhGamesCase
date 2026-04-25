@@ -1,0 +1,49 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 50bc4783f21ed594b8bbf1dcf81e3597, type: 3}
+  m_Name: LevelLayout
+  m_EditorClassIdentifier: Assembly-CSharp::TwimhGames.Puzzle.Config.LevelLayoutSO
+  _selectedLevelIndex: 1
+  _levels:
+  - _name: Level 1
+    _width: 6
+    _height: 6
+    _rowsTopToBottom:
+    - 111111
+    - 111111
+    - 111111
+    - 111111
+    - 111111
+    - 111111
+  - _name: Level 2
+    _width: 9
+    _height: 9
+    _rowsTopToBottom:
+    - 001111100
+    - 111111111
+    - 111111111
+    - 111111111
+    - 111111111
+    - 111111111
+    - 111111111
+    - 111111111
+    - 001111100
+  _migratedToLevelCollection: 1
+  _width: 6
+  _height: 6
+  _rowsTopToBottom:
+  - 111111
+  - 111111
+  - 111111
+  - 111111
+  - 111111
+  - 111111
