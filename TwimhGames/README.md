@@ -1,98 +1,107 @@
-# Unity Match Puzzle Case Solution
+﻿# Unity Match Puzzle Case Çözümü
 
-Unity version target: **6000.3.11f1**
+Hedef Unity sürümü: **6000.3.11f1**
 
-This repository contains a clean, modular, interview-focused implementation of a grid-based match puzzle core gameplay loop.
+Bu depo, grid tabanlı match puzzle çekirdek oynanış döngüsünün temiz, modüler ve mülakat odaklı bir implementasyonunu içerir.
 
-## Scope
+## Kapsam
 
-- Dynamic grid board (`NxM`, default `6x6`)
-- Optional shaped level layouts via ScriptableObject playable-mask
-- Random tile generation with configurable fruit tile catalog (sprite-based)
-- Sprite rendering auto-fits each tile to board cell size (safe for 200x200 assets and mixed PPU values)
-- Layered board visuals: background panel + per-cell square slots + fruit sprites
-- Special tiles can use sprite icons (Color/Bomb/Lightning) via `BoardConfig -> Visual`, replacing fruit sprite on those tiles
-- Object pooling for tile views
-- Adjacent swap validation with illegal move rollback
-- Match detection (`3+` horizontal/vertical)
-- Special tile creation rules:
-  - `4` line match -> **Lightning** special
-  - `5+` line match -> **Color** special
-  - horizontal+vertical intersection (`T/L/+`) -> **Bomb** special
-- Special trigger behavior:
-  - **Lightning**: clears full row + column
-  - **Bomb**: clears 3x3 area
-  - **Color**: when swapped, clears all tiles of the swapped fruit kind
-- Special usage:
-  - specials no longer require a match to activate
-  - swapping a special with any adjacent tile triggers it directly
-  - direct special + special swaps use stronger combo patterns instead of just firing both normally
-  - new special creation is limited to the player-initiated first match; cascades and shuffle cleanup do not spawn extra specials
-- Chain reactions between specials
-- If no valid move is available, board auto-shuffles until at least one valid move exists
-- If player stays idle for a while, system shows suggested move hint
-  - hint prioritizes moves that create specials over plain matches
-- DOTween-integrated visual flow (when DOTween define is active):
-  - hint preview: grow/shrink + swap-preview + return
-  - match clear: fast shrink-out before pooled release
-- Full deterministic resolve loop:
+- Dinamik grid board (`NxM`, varsayılan `6x6`)
+- ScriptableObject playable-mask ile opsiyonel şekilli level düzenleri
+- Konfigüre edilebilir meyve tile kataloğu ile rastgele tile üretimi (sprite tabanlı)
+- Sprite render boyutu hücreye otomatik uyar (200x200 assetler ve farklı PPU değerleri için güvenli)
+- Katmanlı board görselleri: arka panel + hücre kareleri + meyve sprite'ları
+- Özel taşlar, `BoardConfig -> Visual` altındaki sprite ikonları (Color/Bomb/Lightning) ile meyve görselinin yerine gösterilebilir
+- Tile view için object pooling
+- Bitişik swap doğrulaması ve geçersiz hamlede geri alma
+- Match tespiti (`3+` yatay/dikey)
+- Özel taş üretim kuralları:
+  - `4`'lü çizgi eşleşmesi -> **Lightning**
+  - `5+` çizgi eşleşmesi -> **Color**
+  - yatay+dikey kesişim (`T/L/+`) -> **Bomb**
+- Özel taş tetik davranışları:
+  - **Lightning**: bulunduğu satır + sütunun tamamını temizler
+  - **Bomb**: ayarlanan alanı temizler (`3x3`, `5x5` veya custom)
+  - **Color**: swap edildiği meyve türündeki tüm taşları temizler
+- Özel taş kullanım davranışı:
+  - özel taşların tetiklenmesi için artık ayrıca match şartı yok
+  - özel taşlar normal 3+ meyve match'lerinde pasif kalır; sadece direkt swap ile veya başka bir özel taşın etki alanına girince tetiklenir
+  - özel taş, herhangi bir komşu taşla swap edilirse direkt çalışır
+  - özel + özel direkt swap'larda normal tekil tetik yerine daha güçlü combo paterni uygulanır
+  - yeni özel taş üretimi yalnızca oyuncunun başlattığı ilk match ile sınırlıdır; cascade ve shuffle temizliği ekstra özel üretmez
+- Özel taşlar arası zincir reaksiyon (chain reaction)
+- Geçerli hamle kalmazsa board, en az bir geçerli hamle garanti edecek şekilde otomatik shuffle edilir
+- Oyuncu bir süre hamle yapmazsa sistem hamle önerisi gösterir
+  - öneri sistemi düz match yerine özel taş üreten hamleleri önceliklendirir
+- DOTween entegre görsel akış (DOTween define aktifse):
+  - öneri animasyonu: büyü/küçül + swap önizlemesi + eski konuma dönüş
+  - match temizleme: havuza dönmeden önce hızlı küçülme animasyonu
+- Deterministik tam çözüm döngüsü:
   - match
   - clear
-  - trigger specials
+  - special trigger
   - drop
   - refill
-  - auto-cascade until stable
+  - board stabil olana kadar auto-cascade
 
-## Run
+## Çalıştırma
 
-1. Open project in Unity `6000.3.11f1`.
-2. Open `Assets/Scenes/SampleScene.unity`.
-3. Press Play.
+1. Projeyi Unity `6000.3.11f1` ile açın.
+2. `Assets/Scenes/SampleScene.unity` sahnesini açın.
+3. Play'e basın.
 
-`PuzzleGameBootstrap` auto-creates `PuzzleGameInstaller` if not present in scene, so the prototype is playable without manual scene setup.
+Sahnede `PuzzleGameInstaller` yoksa `PuzzleGameBootstrap` otomatik oluşturur; bu yüzden manuel kurulum olmadan prototip oynanabilir.
 
-## Shaped Level Setup (ScriptableObject)
+## Şekilli Level Kurulumu (ScriptableObject)
 
-1. Create `Create > TwimhGames > Puzzle > Level Layouts`.
-2. In `LevelLayout` inspector:
-   - use the `Levels` section to add, duplicate, remove, and reorder level entries
-   - click one level from the list to make it the selected runtime level
-   - edit that level with `Name`, `Width`, `Height`, and the clickable `Layout Grid`
-3. Characters:
-   - playable: `1`, `X`, `O`, `#`
-   - blocked: `0`, `.`, `-`, `_`, empty
-4. Assign that asset to `BoardConfig -> Level Layout`.
-5. If `Level Layout` is assigned, board size and playable mask come from the selected level entry; otherwise `BoardConfig` width/height is used.
+1. `Create > TwimhGames > Puzzle > Level Layouts` ile asset oluşturun.
+2. `LevelLayout` inspector içinde:
+   - `Levels` bölümünden level ekleyin, kopyalayın, silin veya sıralayın
+   - bir level kartına tıklayarak genişletin
+   - ilgili level için `Name`, `Width`, `Height` ve tıklanabilir `Layout Grid` alanını düzenleyin
+3. Karakterler:
+   - oynanabilir: `1`, `X`, `O`, `#`
+   - bloklu: `0`, `.`, `-`, `_`, boş
+4. Bu asset'i `BoardConfig -> Level Layout` alanına atayın.
+5. `Level Layout` atanmışsa board boyutu ve playable mask seçili level'dan gelir; atanmamışsa `BoardConfig` içindeki width/height kullanılır.
 
-## Editor Quality-of-Life
+## Editor Kolaylıkları
 
-- `LevelLayoutSO` custom inspector includes:
-  - multi-level list management: `Add Level`, `Duplicate`, `Remove`, `Move Up`, `Move Down`
-  - click-to-select active runtime level
-  - click-to-toggle grid
-  - quick presets: `Fill`, `Clear`, `Invert`, `Border`, `Cross`, `Diamond`
-  - validation hints (playable count, disconnected groups)
-- one-click bootstrap menu:
+- `LevelLayoutSO` custom inspector özellikleri:
+  - accordion tarzı çoklu level düzenleme
+  - `Add Level`, `Duplicate`, `Remove`, `Move Up`, `Move Down`
+  - hızlı presetler: `Fill`, `Clear`, `Invert`, `Border`, `Cross`, `Diamond`
+  - doğrulama uyarıları (playable hücre sayısı, kopuk grup bilgisi)
+- tek tık kurulum menüsü:
   - `TwimhGames > Puzzle > Create Default Case Assets`
-  - auto-creates and links `BoardConfig`, `TileCatalog`, `LevelLayout`
-  - auto-populates `TileCatalog` with fruit sprites from `Assets/Simasart/Hungry Bat/Art/Fruits`
+  - hedef klasör sorar, BoardConfig/TileCatalog/LevelLayout üretip bağlar
+  - sabit asset path kullanmadan, enum token isimleriyle sprite arayıp TileCatalog ve özel ikonları doldurur
 
-Hint timing can be tuned in `BoardConfig -> Timings`:
+## Temel Konfigürasyon
+
+Hamle önerisi zamanlaması `BoardConfig -> Timings` altından ayarlanır:
 - `HintDelay`
 - `HintBlinkInterval`
-- `ClearAnimationDuration` (match clear shrink animation length)
-- `NoMoveShuffleDelay` (wait time before auto-shuffle when no valid moves remain)
+- `ClearAnimationDuration`
+- `NoMoveShuffleDelay`
 
-Board layout can be tuned in `BoardConfig`:
-- `Slot Size`: size of the square under the fruit
-- `Cell Gap`: empty space between neighboring squares
-- `Fruit Size`: size of the fruit sprite itself
-- `Bomb Area -> Mode`: `3x3`, `5x5`, or `Custom`
-- `Bomb Area -> Custom Width/Height`: custom bomb grid size when `Mode = Custom`
+Board düzeni `BoardConfig` üzerinden ayarlanır:
+- `Slot Size`: meyve altındaki kare boyutu
+- `Cell Gap`: komşu kareler arasındaki boşluk
+- `Fruit Size`: meyve sprite boyutu
+- `Visual -> ShowBoardBackground`: board paneli + hücre karelerinin runtime üretimini aç/kapat
+- `Bomb Area -> Mode`: `3x3`, `5x5` veya `Custom`
+- `Bomb Area -> Custom Width/Height`: `Mode = Custom` iken bombanın grid alan boyutu
+- `Special Combos`: `Bomb+Bomb`, `Lightning+Lightning` ve `Bomb+Lightning` combo temizleme güçleri
+- `Allow Cascade Special Spawns`: otomatik cascade match'lerinde de özel taş üretimine izin verir
+- `Generation -> MaxGenerationAttempts`: geçerli board üretimi için yeniden deneme bütçesi
+- `DropDurationPerCell` / `RefillDurationPerCell`: uzun düşüşlerde ek animasyon süresi (drop/refill akıcılığı için ana ayar)
+- `DropDurationMax` / `RefillDurationMax`: uzun düşüşlerde süre tavanı (cascade'in fazla uzamamasını sağlar)
+- `Camera`: board kadraj padding'i ve oyun kamerası arka plan rengi
 
-If DOTween is installed and either `DOTWEEN` or `DOTWEEN_ENABLED` define is active, hint uses smooth grow/swap-return preview animation and clears use shrink-out tween before release.
+DOTween kuruluysa ve `DOTWEEN` veya `DOTWEEN_ENABLED` define'ı aktifse, öneri animasyonu ve clear küçülme animasyonu DOTween üzerinden çalışır.
 
-## Folder Structure
+## Klasör Yapısı
 
 - `Assets/_Project/Scripts/Core`
 - `Assets/_Project/Scripts/Grid`
@@ -109,66 +118,69 @@ If DOTween is installed and either `DOTWEEN` or `DOTWEEN_ENABLED` define is acti
 - `Assets/_Project/Scenes`
 - `Assets/_Project/Art/Placeholders`
 
-## Architecture Choices
+## Mimari Tercihler
 
-- **Board orchestration**
-  - `BoardManager` owns board model + view mapping and high-level board operations (spawn, swap, clear, drop, refill).
-- **Model/View separation**
-  - `TileModel` is pure gameplay data.
-  - `TileView` is visual + collider representation.
-- **Single-responsibility services**
-  - `MatchFinder`: only finds matches.
-  - `SpecialTileResolver`: expands special clear sets, direct special swaps, and special chain reactions.
-  - `SwapController`: adjacency + swap legality + rollback handling.
-  - `BoardResolver`: resolve loop orchestration.
+- **Board orkestrasyonu**
+  - BoardManager; board model + view eşlemesini ve üst seviye board operasyonlarını yönetir (spawn, swap, clear, drop, refill, shuffle sunumu).
+  - BoardRuntimeValidator; init/reload sonrası board tutarlılığını fail-fast doğrular.
+- **Model/View ayrımı**
+  - TileModel saf oynanış verisidir.
+  - TileView görsel + collider temsilidir.
+- **Tek sorumluluklu servisler**
+  - MatchFinder: yalnızca match bulur.
+  - PlayableBoardGenerator: başlangıçta match üretmeden stabil board üretir ve en az bir geçerli hamleyi garanti eder.
+  - SpecialTileResolver: özel taş etki alanını, direkt special swap'ları ve chain reaction genişlemesini yönetir.
+  - SwapController: komşuluk kontrolü, swap geçerliliği ve rollback.
+  - BoardResolver: resolve loop orkestrasyonu.
+  - LevelNavigationController: önceki/sonraki level buton akışını installer'dan izole eder.
+  - PuzzleCameraConfigurator: kamera çözümleme/konfigürasyonunu installer'dan izole eder.
 - **State machine**
-  - `GameStateMachine` explicitly gates input and gameplay flow.
-- **Event-driven flow**
-  - `GameEventBus` publishes state/swap/match/special/stable events to reduce direct coupling between gameplay systems and external listeners.
-- **Data-driven configuration**
-  - `BoardConfigSO` and `TileCatalogSO` define board rules and tile catalog.
-  - Runtime defaults are created if assets are not assigned, so project remains playable out of the box.
+  - GameStateMachine, input ve oynanış akışını açık şekilde state bazlı sınırlar.
+- **Event-driven akış**
+  - GameEventBus; state/swap/match/special/stable eventlerini yayınlar ve sistemler arası direkt bağımlılığı azaltır.
+- **Data-driven konfigürasyon**
+  - BoardConfigSO ve TileCatalogSO; board kuralları, generation kısıtları, special-combo değerleri, kamera kadrajı ve tile kataloğunu tanımlar.
+  - Asset atanmazsa runtime default oluşturulur; proje temel haliyle yine oynanabilir kalır.
 
-## Patterns Used (and Why)
+## Kullanılan Pattern'ler (Neden)
 
 - **State Machine** (`GameStateMachine`)
-  - Prevents invalid concurrent operations and input timing bugs.
+  - Geçersiz eşzamanlı işlemleri ve input zamanlama hatalarını engeller.
 - **Observer/Event Bus** (`GameEventBus`)
-  - Keeps game loop extensible (UI, analytics, VFX hooks can subscribe without changing core logic).
+  - Çekirdek mantığı değiştirmeden UI/analytics/VFX gibi abonelerin eklenmesini kolaylaştırır.
 - **Object Pooling** (`TilePoolManager`)
-  - Avoids frequent instantiate/destroy churn during clear/refill cascades.
-- **Coordinator + Service split**
-  - Improves readability and testability versus one large monolithic board script.
+  - Clear/refill cascade sırasında sık instantiate/destroy maliyetini azaltır.
+- **Coordinator + Service ayrımı**
+  - Tek büyük monolitik script yerine okunabilirlik ve test edilebilirlik sağlar.
 
-## Known Limitations
+## Bilinen Sınırlamalar
 
-- Indirectly detonated Color specials still use their stored base fruit kind; only direct swap activation borrows the swapped fruit kind.
-- In shaped boards, gravity is vertical per-column compaction over playable slots (no side-flow/pathfinding fill).
-- Input is basic click/tap + drag-swap (no advanced gesture tuning or touch UX polish).
-- No gameplay UI (score/moves/goals), VFX/SFX, or production polish.
-- Runtime bootstrap uses default ScriptableObject assets when present; otherwise falls back to runtime-generated defaults.
+- Dolaylı tetiklenen Color special, hâlâ saklanan base fruit türünü kullanır; yalnızca direkt swap tetiklemesi swap yapılan meyve türünü ödünç alır.
+- Şekilli boardlarda gravity, sütun bazlı dikey kompaksiyon şeklindedir (yan akış/pathfinding fill yok).
+- Input temel düzeydedir (click/tap + drag-swap); gelişmiş gesture/touch UX iyileştirmeleri yoktur.
+- Oyun UI'si (score/move/goal), VFX/SFX ve production polish kapsam dışıdır.
+- Geçerli hamle üretilemeyen bozuk level mask'leri, sessizce dönmek yerine board generation aşamasında fail-fast durdurulur.
 
-## If More Time Was Available
+## Daha Fazla Zaman Olsaydı
 
-- Add unit/integration tests for:
+- Şu başlıklar için unit/integration test eklenirdi:
   - swap legality
-  - match detection edge cases
+  - match detection edge case'leri
   - chain reaction determinism
-  - resolve loop invariants
-- Add dead-board detection + deterministic shuffle.
-- Add richer color-special interaction variants (for example combining with neighboring tile color on direct swap).
-- Add editor tooling to auto-create/configure default ScriptableObject assets.
-- Add lightweight debug HUD subscribing to `GameEventBus`.
+  - resolve loop invariant'ları
+- Play mode'a girmeden imkânsız şekilli layout'ları önden yakalayan statik editor doğrulaması eklenirdi.
+- Color special etkileşim varyantları zenginleştirilirdi (ör. direkt swap'ta komşu taş rengini birleştirme).
+- Varsayılan ScriptableObject assetlerini otomatik kuran editor tooling genişletilirdi.
+- `GameEventBus` aboneli debug HUD eklenirdi.
 
-## Submission Notes
+## Teslim Notları
 
-- Implementation prioritizes correctness and maintainability over polish.
-- The core gameplay systems are intentionally separated for interview discussion:
-  - swap validation and rollback
-  - match finder isolation
+- Implementasyon, polish yerine doğruluk ve sürdürülebilirliği önceliklendirir.
+- Mülakat anlatımı için çekirdek sistemler bilinçli olarak ayrıştırılmıştır:
+  - swap validation + rollback
+  - match finder izolasyonu
+  - playable-board generation
   - special chain expansion
-  - deterministic board resolve loop
-  - explicit game state gating
-- Placeholder visuals are simple by design to keep focus on architecture and gameplay correctness.
-
-
+  - deterministik board resolve loop
+  - açık state gating
+- Placeholder görseller bilinçli olarak sade tutulmuştur; odak mimari ve oynanış doğruluğudur.
