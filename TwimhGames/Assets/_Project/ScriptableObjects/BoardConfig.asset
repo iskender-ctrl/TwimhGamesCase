@@ -21,28 +21,49 @@ MonoBehaviour:
   _cellGap: 0.1
   _fruitSize: 2
   _layoutSettingsMigrated: 1
+  _advancedSettingsMigrated: 1
+  _cascadeSpecialSpawnSettingMigrated: 1
+  _boardBackgroundVisibilityMigrated: 1
   _bombArea:
     Mode: 0
     CustomWidth: 9
     CustomHeight: 9
+  _specialCombos:
+    BombBombExtraRings: 1
+    LightningLightningHorizontalRadius: 1
+    LightningLightningVerticalRadius: 1
+    UseBombAreaForMixedCrossBands: 1
+    MixedCrossHorizontalRadius: 1
+    MixedCrossVerticalRadius: 1
+  _allowCascadeSpecialSpawns: 1
   _avoidInitialMatches: 1
   _refillSpawnBufferRows: 2
+  _generation:
+    MaxGenerationAttempts: 128
   _timings:
     SwapDuration: 0.15
     IllegalSwapReturnDuration: 0.12
     ClearAnimationDuration: 0.09
     ClearDelay: 0.1
     DropDuration: 0.18
+    DropDurationPerCell: 0.03
+    DropDurationMax: 0.28
     RefillDuration: 0.18
+    RefillDurationPerCell: 0.028
+    RefillDurationMax: 0.26
     NoMoveShuffleDelay: 0.45
     ShuffleDuration: 0.22
     HintDelay: 3
     HintBlinkInterval: 0.35
     CascadePause: 0.1
+  _camera:
+    FramingPadding: 1.25
+    BackgroundColor: {r: 0.95, g: 0.96, b: 0.98, a: 1}
   _visual:
     PanelPadding: 0.9
     CellFillRatio: 1
-    ShowBlockedCells: 0
+    ShowBoardBackground: 1
+    ShowBlockedCells: 1
     PanelColor: {r: 0.15, g: 0.18, b: 0.24, a: 0.95}
     PlayableCellColor: {r: 0.29, g: 0.34, b: 0.43, a: 0.95}
     BlockedCellColor: {r: 0.2, g: 0.22, b: 0.28, a: 0.7}
